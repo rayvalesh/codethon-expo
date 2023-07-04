@@ -1,7 +1,7 @@
 
 import React , {useEffect, useState } from "react";
 import './App.css';
-import records from './records.json';
+import data from './records.json';
 import styled from 'styled-components';
 
 function App() {
@@ -9,32 +9,32 @@ function App() {
   var validdata = false;
 
   const fetchData = () => {
-    fetch("https://54a2b259-63bd-4307-89a4-9b7413ce4338.mock.pstmn.io/getdata")
-    .then(response => {
-      return response.json()
-    })
-    .then(data => {
-      const filterdata = []
+    // fetch("https://expo-data.free.beeceptor.com/getdata")
+    // .then(response => {
+    //   return response.json()
+    // })
+    // .then(data => {
+      var filterdata = []
       // const listOfModels = ["ObjectDetection", "FaceAnalytics", "FaceRecognition", "AudioDetection"];
 
       const InferenceData = data.map(item => item.inferenceanalytics);
-      //console.log(InferenceData)
       for (let inferobj of InferenceData) {
-        //console.log(inferobj)
-        //console.log(inferobj.TimeStamp);
-        if (analyticsData.length == 0) {
+        
+        if (analyticsData.length === 0) {
+          
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
+          
         } else if (analyticsData.slice(-1)[0]['key'] !== inferobj.TimeStamp) {
+          
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
-        } else {
-          validdata = false;
         }
       }
       
 
-      if (validdata == true) {
+      if (validdata === true) {
+
         const wrapValues = filterdata[0]["value"].slice(0,-2).reduce((result, dictionary) => {
           Object.entries(dictionary).forEach(([key, value]) => {
             result[key] = (result[key] || 0) + value;
@@ -42,23 +42,54 @@ function App() {
           return result;
         }, {});
 
-        filterdata[0]["value"] = wrapValues;
-        setAnalyticsData(filterdata);
+        if (analyticsData.length === 0) {
+          filterdata[0]["value"] = wrapValues;
+        } else {
+          let temp = wrapValues;
+          for (const [key, value] of Object.entries(temp)) {
+            console.log(key, value);
+            if (key in analyticsData.slice(-1)[0]['value']) {
+              if ([temp[key], analyticsData.slice(-1)[0]['value'][key]].some((val) => val == null)) {
+                if (temp[key] == null) {
+                  diff = analyticsData.slice(-1)[0]['value'][key];
+                } else {
+                  diff = temp[key]
+                }
+              
+              } else {
+                var diff = temp[key] - analyticsData.slice(-1)[0]['value'][key]
+              }
+              
+              if ( diff >= 0) {
+                temp[key] = diff
+              } else {
+                temp[key] = value
+              }
+            } else {
+              temp[key] = null
+            }
+          }
+          filterdata[0]["value"] = temp;
+          }
+        
+        setAnalyticsData(prevdata => [...prevdata, filterdata[0]]);
         validdata = false;
-      }
-      
-    })
+      }      
+    }
     
-  }
-  console.log(analyticsData);
+  useEffect(() => {
+    console.log(analyticsData.length,analyticsData);
+  },[analyticsData])  
+  
 
   useEffect(() => {
+    
     const interval= setInterval(()=>{
       fetchData();
-    },3000);
+    },5000);
 
     return() => clearInterval(interval);
-  },[])
+  },[fetchData])
 
   return (
     <div>
