@@ -9,24 +9,24 @@
                 "person": 7,
 				"mask": 4,
 				"nomask": 4,
-				"Fire": 78
+				"Fire": 90
             },
 			"AudioDetection": {
-				"Gunshot": 7
+				"Gunshot": 1
 			},
 			"FaceRecognition": {
 				"one": 2
 			},
 			"FaceAnalytics": {
-				"Female": 2,
-				"Male": 1,
+				"Female": 55,
+				"Male": 300,
 				"age-21": 2,
 				"age-44": 1,
 				"face": 3,
 				"happy": 1,
 				"neutral": 2
 			},
-			"TimeStamp": "2023‑07‑08 11:45:30.005",
+			"TimeStamp": "2023‑07‑36 11:45:30.005",
             "throttling": {
                 "errorcount": 0
             }
