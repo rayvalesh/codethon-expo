@@ -9,31 +9,26 @@ import AgeStats from "./components/AgeState";
 window.wrapValues = null;
 
 function App() {
+  const [records, setRecords] = useState([]);
   const [analyticsData, setAnalyticsData] = useState([]);
-  const [aggregatedData, setAggregatedData] = useState([]);
-  const d = useRef({});
   
   var validdata = false;
 
   const fetchData = () => {
-    // fetch("https://expo-data.free.beeceptor.com/getdata")
-    // .then(response => {
-    //   return response.json()
-    // })
-    // .then(data => {
       var filterdata = []
       // const listOfModels = ["ObjectDetection", "FaceAnalytics", "FaceRecognition", "AudioDetection"];
 
-      const InferenceData = data.map(item => item.inferenceanalytics);
+      const InferenceData = records.map(item => item.inferenceanalytics);
+      console.log(InferenceData);
       for (let inferobj of InferenceData) {
         
         if (analyticsData.length === 0) {
-          
+          console.log("ACC EMPTY",analyticsData);
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
           
         } else if (analyticsData.slice(-1)[0]['key'] !== inferobj.TimeStamp) {
-          
+          console.log("DATA PRESENT",analyticsData.slice(-1)[0]['key'],inferobj.TimeStamp);
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
         }
@@ -49,8 +44,6 @@ function App() {
           
           return result;
         }, {});
-        setAggregatedData(wrapValues);
-        d.current = wrapValues;
 
 
         if (analyticsData.length === 0) {
@@ -59,27 +52,25 @@ function App() {
           let temp = wrapValues;
           let diff = 0;
           for (const [key, value] of Object.entries(temp)) {
-            // console.log(key, value);
             if (key in analyticsData.slice(-1)[0]['value']) {
               if ([temp[key], analyticsData.slice(-1)[0]['value'][key]].some((val) => val == null)) {
                 if (temp[key] == null) {
                   diff = analyticsData.slice(-1)[0]['value'][key];
                 } else {
-                  diff = temp[key]
+                    diff = temp[key]
                 }
               
               } else {
-                diff = temp[key] - analyticsData.slice(-1)[0]['value'][key]
-                // console.log(diff)
+                  diff = temp[key] - analyticsData.slice(-1)[0]['value'][key]
               }
               
               if ( diff >= 0) {
                 temp[key] = diff
               } else {
-                temp[key] = value
+                  temp[key] = value
               }
             } else {
-              temp[key] = null
+                temp[key] = null
             }
           }
           filterdata[0]["value"] = temp;
@@ -88,18 +79,32 @@ function App() {
         setAnalyticsData(prevdata => [...prevdata, filterdata[0]]);
         
         validdata = false;
-      }      
+      } 
     }
-    
 
   useEffect(() => {
-    console.log(analyticsData.length,analyticsData);
+    
+    let subscribed = true;
     const interval= setInterval(()=>{
-      fetchData();
-    },5000);
+      fetch("https://expo-data.free.beeceptor.com/getdata")
+        .then(response => {
+          return response.json()
+        })
+        .then((data) => {
+          if (subscribed) {
+            setRecords(data);
+            fetchData();
+            console.log("Analytics",analyticsData.length,analyticsData);
+          }
+        });
+      
+    },30000);
 
-    return() => clearInterval(interval);
-  },[fetchData, analyticsData, aggregatedData])
+    return() => {
+      clearInterval(interval);
+      subscribed = false;
+    }
+  },[analyticsData])
 
   const mockData = {
 		ageGroups: [
@@ -114,7 +119,7 @@ function App() {
   return (
     <div className="container mx-auto p-4">
 			<h1 className="text-2xl font-bold mb-4">Crowd Detection</h1>
-			<CrowdDetection males={d.current.Male} females={d.current.Female} />
+			{analyticsData && <CrowdDetection males={records[0].FaceAnalytics.Female} females={records[0].FaceAnalytics.Male} />}
 			<h1 className="text-2xl font-bold mt-8 mb-4 ">Age Stats</h1>
 			<AgeStats ageGroups={mockData.ageGroups} />
 		</div>
