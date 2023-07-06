@@ -1,7 +1,7 @@
 
 import React , {useEffect, useState, useRef } from "react";
 import './App.css';
-import data from './records.json';
+import manualrec from './records.json';
 import styled from 'styled-components';
 import CrowdDetection from "./components/CrowdDetection";
 import AgeStats from "./components/AgeState";
@@ -11,24 +11,37 @@ window.wrapValues = null;
 function App() {
   const [records, setRecords] = useState([]);
   const [analyticsData, setAnalyticsData] = useState([]);
+  const [ageData, setAgeData] = useState([]);
   
   var validdata = false;
+
+  const getAgeData = (agegroups) => {
+    for (const [key, value] of Object.entries(agegroups)) {
+      if (key === "age-21") {
+        setAgeData(prevdata => [...prevdata, {"range": "21 - 30","count": value}])
+      }
+      if (key === "age-44") {
+        setAgeData(prevdata => [...prevdata, {"range": "41 - 50","count": value}])
+      }
+    }
+  }
 
   const fetchData = () => {
       var filterdata = []
       // const listOfModels = ["ObjectDetection", "FaceAnalytics", "FaceRecognition", "AudioDetection"];
 
       const InferenceData = records.map(item => item.inferenceanalytics);
-      console.log(InferenceData);
+      //console.log(InferenceData);
+      //getAgeData(InferenceData[0].FaceAnalytics)
       for (let inferobj of InferenceData) {
         
         if (analyticsData.length === 0) {
-          console.log("ACC EMPTY",analyticsData);
+          
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
           
         } else if (analyticsData.slice(-1)[0]['key'] !== inferobj.TimeStamp) {
-          console.log("DATA PRESENT",analyticsData.slice(-1)[0]['key'],inferobj.TimeStamp);
+          
           filterdata.push({ key: inferobj.TimeStamp, value: Object.values(inferobj) });
           validdata = true;
         }
@@ -95,6 +108,7 @@ function App() {
             setRecords(data);
             fetchData();
             console.log("Analytics",analyticsData.length,analyticsData);
+            console.log("agedata",ageData.length,ageData);
           }
         });
       
@@ -118,10 +132,10 @@ function App() {
 
   return (
     <div className="container mx-auto p-4">
-			<h1 className="text-2xl font-bold mb-4">Crowd Detection</h1>
+			{/* <h1 className="text-2xl font-bold mb-4">Crowd Detection</h1>
 			{analyticsData && <CrowdDetection males={records[0].FaceAnalytics.Female} females={records[0].FaceAnalytics.Male} />}
 			<h1 className="text-2xl font-bold mt-8 mb-4 ">Age Stats</h1>
-			<AgeStats ageGroups={mockData.ageGroups} />
+			<AgeStats ageGroups={mockData.ageGroups} /> */}
 		</div>
   );
 };
